@@ -1,0 +1,317 @@
+experiment:
+  file:
+    # will add project name before the directory by agent
+    log_path: 'log/'
+    model_path: 'model/'
+    station:
+      # location of the dataset file
+      volume_train: "./data/station/bike_volume_train.npy"
+      flow_train: "./data/station/bike_flow_train.npy"
+      weather_train: "./data/station/weather_train.npy"
+      volume_test: "./data/station/bike_volume_test.npy"
+      flow_test: "./data/station/bike_flow_test.npy"
+      weather_test: "./data/station/weather_test.npy"
+      poi_data: "./data/station/bike_poi.npy"
+      single_volume_train: "./data/station/single_volume_train.npy"
+      single_volume_test: "./data/station/single_volume_test.npy"
+    region:
+      volume_train: "./data/region/bike_volume_train.npy"
+      volume_test: "./data/region/bike_volume_test.npy"
+      flow_train: "./data/region/bike_flow_train.npy"
+      flow_test: "./data/region/bike_flow_test.npy"
+      weather_train: "./data/region/weather_train.npy"
+      weather_test: "./data/region/weather_test.npy"
+
+  training:
+    # parameters for supernet training
+    supernet_training:
+      # size of batch
+      batch_size: 64
+      # maximum epochs (if early stop is not activated)
+      max_epochs: 30
+      validation_split: 0.2
+      optimizer: "adagrad"
+      loss: "mse"
+    # parameters for retraining best architecture
+    architecture_retrain:
+      batch_size: 64
+      max_epochs: 60
+      validation_split: 0.2
+      optimizer: "adagrad"
+      loss: "mse"
+
+  dataset:
+    # there are two dataset with different preprocessing
+    # 1. original dataset by STDN: Citi Bike 07~09, 2016
+    # 2. new preprocessing dataset (station-level dataset): Citi Bike 
+    region:
+      timeslot_daynum: 48
+      # length of short term lstm
+      short_term_lstm_seq_len: 7
+      # num of day for attension (value P in paper)
+      long_term_lstm_seq_len: 3
+      # num of time for attention (value Q in paper)
+      att_lstm_num: 3
+      # size for hist data for lstm feature
+      hist_feature_daynum: 7
+      # size for last data for lstm feature
+      last_feature_num: 48
+      # size of cnn input (2*cnn_nbhd_size + 1) for area size
+      cnn_nbhd_size: 3
+      # nbhd size for lstm feature (2*lstm_nbhd_size + 1)
+      lstm_nbhd_size: 2
+      # output size for FC after conv
+      cnn_flat_size: 128
+      # values under the threshold will not be evaluate in testing
+      # notice that this threshold is the denormalized value
+      threshold: 10
+      # training data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 40, current time: 0 ~ 48
+      start_date_train: 0
+      end_date_train: 40
+      start_hour_train: 18
+      end_hour_train: 36
+      # testing data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 20, current time: 0 ~ 48
+      start_date_test: 0
+      end_date_test: 20
+      start_hour_test: 18
+      end_hour_test: 36
+      # max value for each dataset, used for normalized / denormalized
+      volume_train_max: 244.0
+      flow_train_max: 41.0
+      volume_test_max: 291.0
+      flow_test_max: 50.0
+      # validation ratio for searching architecture
+      validation_ratio: 0.2
+      # prediction target
+      pred_target: "volume"
+    
+    station:
+      timeslot_daynum: 48
+      short_term_lstm_seq_len: 7
+      long_term_lstm_seq_len: 3
+      att_lstm_num: 3
+      hist_feature_daynum: 7
+      last_feature_num: 48
+      lstm_nbhd_size: 5
+      threshold: 15
+      volume_train_max: 283.0
+      volume_test_max: 263.0
+      flow_train_max: 137.0
+      flow_test_max: 153.0
+      single_volume_train_max: 50.0
+      single_volume_test_max: 50.0
+      single_flow_train_max: 39.0
+      single_flow_test_max: 50.0
+      # training data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 40, current time: 0 ~ 48
+      start_date_train: 0
+      end_date_train: 40
+      start_hour_train: 18
+      end_hour_train: 36
+      # testing data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 20, current time: 0 ~ 48
+      start_date_test: 0
+      end_date_test: 20
+      start_hour_test: 18
+      end_hour_test: 36
+      # validation ratio for searching architecture
+      validation_ratio: 0.2
+      # prediction target
+      pred_target: "volume"
+
+  searching: 
+    # parameters for asaga
+    asaga:
+      generation_num: 15
+      population_num: 20
+      annealing_ratio: 0.9
+      initial_tmp: 200
+      final_tmp: 1
+      crossover_prob: 0.8
+      annealing_prob: 1
+
+  model:
+    # parameter for supernet / architecture
+    gate_level: 3
+    # choice num below represents both long term and shot term
+    # conv kernel size [1, 2, 3]
+    conv_choice_num: 3
+    # avg / max pooling for size [2, 3, 4] and ignore: 2*3+1
+    pooling_choice_num: 7
+    # activation for conv: relu, relu6 and prelu
+    conv_activ_choice_num: 3
+    # activation for flow gate: sigmoid, relu6 and tanh
+    gate_activ_choice_num: 3
+    station:
+      cnn_flat_size: 128
+      lstm_out_size: 128
+      output_shape_num: 2
+    region:
+      cnn_flat_size: 128
+      lstm_out_size: 128
+      output_shape_num: 2
+# debug mode
+debug:
+  file:
+    # will add project name before the directory by agent
+    log_path: 'log/'
+    model_path: 'model/'
+    station:
+      # location of the dataset file
+      volume_train: "./data/station/bike_volume_train.npy"
+      flow_train: "./data/station/bike_flow_train.npy"
+      weather_train: "./data/station/weather_train.npy"
+      volume_test: "./data/station/bike_volume_test.npy"
+      flow_test: "./data/station/bike_flow_test.npy"
+      weather_test: "./data/station/weather_test.npy"
+      poi_data: "./data/station/bike_poi.npy"
+      single_volume_train: "./data/station/single_volume_train.npy"
+      single_volume_test: "./data/station/single_volume_test.npy"
+    region:
+      volume_train: "./data/region/bike_volume_train.npy"
+      volume_test: "./data/region/bike_volume_test.npy"
+      flow_train: "./data/region/bike_flow_train.npy"
+      flow_test: "./data/region/bike_flow_test.npy"
+      weather_train: "./data/region/weather_train.npy"
+      weather_test: "./data/region/weather_test.npy"
+
+  training:
+    # parameters for supernet training
+    supernet_training:
+      # size of batch
+      batch_size: 64
+      # maximum epochs (if early stop is not activated)
+      max_epochs: 2
+      validation_split: 0.2
+      optimizer: "adagrad"
+      loss: "mse"
+    # parameters for retraining best architecture
+    architecture_retrain:
+      batch_size: 64
+      max_epochs: 2
+      validation_split: 0.2
+      optimizer: "adagrad"
+      loss: "mse"
+
+  dataset:
+    # there are two dataset with different preprocessing
+    # 1. original dataset by STDN: Citi Bike 07~09, 2016
+    # 2. new preprocessing dataset (station-level dataset): Citi Bike 
+    region:
+      timeslot_daynum: 48
+      # length of short term lstm
+      short_term_lstm_seq_len: 7
+      # num of day for attension (value P in paper)
+      long_term_lstm_seq_len: 3
+      # num of time for attention (value Q in paper)
+      att_lstm_num: 3
+      # size for hist data for lstm feature
+      hist_feature_daynum: 7
+      # size for last data for lstm feature
+      last_feature_num: 48
+      # size of cnn input (2*cnn_nbhd_size + 1) for area size
+      cnn_nbhd_size: 3
+      # nbhd size for lstm feature (2*lstm_nbhd_size + 1)
+      lstm_nbhd_size: 2
+      # output size for FC after conv
+      cnn_flat_size: 128
+      # values under the threshold will not be evaluate in testing
+      # notice that this threshold is the denormalized value
+      threshold: 10
+      # training data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 40, current time: 0 ~ 48
+      start_date_train: 39
+      end_date_train: 40
+      start_hour_train: 18
+      end_hour_train: 36
+      # testing data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 20, current time: 0 ~ 48
+      start_date_test: 19
+      end_date_test: 20
+      start_hour_test: 18
+      end_hour_test: 36
+      # max value for each dataset, used for normalized / denormalized
+      volume_train_max: 244.0
+      flow_train_max: 41.0
+      volume_test_max: 291.0
+      flow_test_max: 50.0
+      # validation ratio for searching architecture
+      validation_ratio: 0.2
+      # prediction target
+      pred_target: "volume"
+    
+    station:
+      timeslot_daynum: 48
+      short_term_lstm_seq_len: 7
+      long_term_lstm_seq_len: 3
+      att_lstm_num: 3
+      hist_feature_daynum: 7
+      last_feature_num: 48
+      lstm_nbhd_size: 5
+      threshold: 15
+      volume_train_max: 283.0
+      volume_test_max: 263.0
+      flow_train_max: 137.0
+      flow_test_max: 153.0
+      single_volume_train_max: 50.0
+      single_volume_test_max: 50.0
+      single_flow_train_max: 39.0
+      single_flow_test_max: 50.0
+      # training data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 40, current time: 0 ~ 48
+      start_date_train: 39
+      end_date_train: 40
+      start_hour_train: 18
+      end_hour_train: 36
+      # testing data time
+      # date: (start)~(end-1), hour: (start)~(end-1)
+      # current date: 0 ~ 20, current time: 0 ~ 48
+      start_date_test: 19
+      end_date_test: 20
+      start_hour_test: 18
+      end_hour_test: 36
+      # validation ratio for searching architecture
+      validation_ratio: 0.2
+      # prediction target
+      pred_target: "volume"
+
+  searching: 
+    # parameters for asaga
+    asaga:
+      generation_num: 2
+      population_num: 8
+      annealing_ratio: 0.9
+      initial_tmp: 200
+      final_tmp: 1
+      crossover_prob: 0.8
+      annealing_prob: 1
+
+  model:
+    # parameter for supernet / architecture
+    gate_level: 3
+    # choice num below represents both long term and shot term
+    # conv kernel size [1, 2, 3]
+    conv_choice_num: 3
+    # avg / max pooling for size [2, 3, 4] and ignore: 2*3+1
+    pooling_choice_num: 7
+    # activation for conv: relu, relu6 and prelu
+    conv_activ_choice_num: 3
+    # activation for flow gate: sigmoid, relu6 and tanh
+    gate_activ_choice_num: 3
+    station:
+      cnn_flat_size: 128
+      lstm_out_size: 128
+      output_shape_num: 2
+    region:
+      cnn_flat_size: 128
+      lstm_out_size: 128
+      output_shape_num: 2
