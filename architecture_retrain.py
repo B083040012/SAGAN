@@ -142,7 +142,7 @@ class Architecture_Retrain():
         early_stop = CustomStopper(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='min', start_epoch=40)
 
         # define csv logger
-        csv_logger = CSVLogger(self.test_dir + self.config["file"]["log_path"] + 'supernet_training_step.csv', append=True, separator=';')
+        csv_logger = CSVLogger(self.test_dir + self.config["file"]["log_path"] + 'architecture_retraining_step.csv', append=True, separator=';')
 
         self.logger.info("[Architecture Retrain] start retraining architecture...")
         start_time = time.time()
