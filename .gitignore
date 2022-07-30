@@ -1,3 +1,7 @@
+# dir that not concerned
+data/
+project_file/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
