@@ -40,7 +40,7 @@ python agent.py --dataset=%dataset% --project_name=%project_name% --start_phase=
 ### Some Details
 
 * directory `./project_file/%project_name%` will be created for storing *saved model* and *log file*
-* if the project has not run before, `agent.py` will copy `./parameters.yml` to the project folder to ensure that this project will always run with same parameters in the future
+* if the project has not executed before, `agent.py` will copy `./parameters.yml` to the project folder to ensure that this project will always executed with same parameters in the future
     * so it is recommanded to **create a new project for a new parameter set**
 * in order to reduce the complexity, `agent.py` will repeat each phase `running_times` then move to the next phase
 
