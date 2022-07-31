@@ -109,6 +109,7 @@ class Architecture_Retrain():
             2. loading model
         """
         # create session and unlimit gpu
+        K.clear_session()
         tf_config = tf.compat.v1.ConfigProto()
         tf_config.gpu_options.allow_growth = True
         K.set_session(tf.compat.v1.Session(config = tf_config))

@@ -74,6 +74,7 @@ class Search():
             * run functions eagerly
         """
         # create session, unlimit gpu and run eagerly
+        K.clear_session()
         config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
         K.set_session(tf.compat.v1.Session(config=config))
