@@ -214,8 +214,8 @@ class Station_Functional_Model:
         # att_nbhd, att_flow, att_lstm, att_weather, short_nbhd, short_flow, short_lstm, short_weather, short_poi
         # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,] + [weather_inputs,] + [poi_inputs,]
 
-        model = Model(inputs = [flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather_inputs, \
-            nbhd_inputs, flow_inputs, lstm_inputs, weather_inputs, poi_inputs], outputs = pred_volume)
+        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + \
+            nbhd_inputs + flow_inputs + [lstm_inputs, ] + [weather_inputs, ] + [poi_inputs, ], outputs = pred_volume)
         model.compile(optimizer = optimizer, loss = loss, metrics=metrics)
         return model
 
@@ -408,7 +408,7 @@ class Region_Functional_Model:
         # att_nbhd, att_flow, att_lstm, att_weather, short_nbhd, short_flow, short_lstm, short_weather
         # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,] + [weather_inputs,]
 
-        model = Model(inputs = [flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather_inputs, \
-            nbhd_inputs, flow_inputs, lstm_inputs, weather_inputs], outputs = pred_volume)
+        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + \
+            nbhd_inputs + flow_inputs + [lstm_inputs, ] + [weather_inputs,], outputs = pred_volume)
         model.compile(optimizer = optimizer, loss = loss, metrics=metrics)
         return model
