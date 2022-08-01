@@ -6,6 +6,42 @@ from file_loader import File_Loader
 from criterion import eval_together, eval_lstm
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
+def get_model_memory_usage(batch_size, model):
+    import numpy as np
+    # try:
+    #     from keras import backend as K
+    # except:
+    #     from tensorflow.keras import backend as K
+
+    shapes_mem_count = 0
+    internal_model_mem_count = 0
+    for l in model.layers:
+        layer_type = l.__class__.__name__
+        if layer_type == 'Model':
+            internal_model_mem_count += get_model_memory_usage(batch_size, l)
+        single_layer_mem = 1
+        out_shape = l.output_shape
+        if type(out_shape) is list:
+            out_shape = out_shape[0]
+        for s in out_shape:
+            if s is None:
+                continue
+            single_layer_mem *= s
+        shapes_mem_count += single_layer_mem
+
+    trainable_count = np.sum([K.count_params(p) for p in model.trainable_weights])
+    non_trainable_count = np.sum([K.count_params(p) for p in model.non_trainable_weights])
+
+    number_size = 4.0
+    if K.floatx() == 'float16':
+        number_size = 2.0
+    if K.floatx() == 'float64':
+        number_size = 8.0
+
+    total_memory = number_size * (batch_size * shapes_mem_count + trainable_count + non_trainable_count)
+    gbytes = np.round(total_memory / (1024.0 ** 3), 3) + internal_model_mem_count
+    return gbytes
+
 # custom for early stop
 # for more details: https://keras.io/api/callbacks/early_stopping/
 class CustomStopper(keras.callbacks.EarlyStopping):
@@ -56,7 +92,7 @@ class Architecture_Retrain():
         my_data_loader = File_Loader(self.dataset_type, self.config)
         if self.dataset_type == "station":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "train")
-            self.test_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]
+            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ] + [short_poi, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
@@ -81,7 +117,7 @@ class Architecture_Retrain():
 
         elif self.dataset_type == "region":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, y = my_data_loader.sample(datatype = "train")
-            self.test_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather]
+            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
@@ -158,6 +194,10 @@ class Architecture_Retrain():
         self.logger.info("[Architecture Retrain] retrained model weight saved")
         self.model.save(self.test_dir + self.config["file"]["model_path"] + "retrained_final_model.h5")
         self.logger.info("[Architecture Retrain] retrained model saved")
+
+        self.logger.info("model summary in Architecture Retrain")
+        self.model.summary(print_fn=self.logger.info)
+        self.logger.info("memory_usage of model: {0}".format(get_model_memory_usage(64, self.model)))
 
         # delete model and clear session
         del self.model
