@@ -58,7 +58,7 @@ class Evaluate_Architecture():
         my_data_loader = File_Loader(self.dataset_type, self.config)
         if self.dataset_type == "station":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "test")
-            self.test_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]
+            self.test_data = att_cnn, att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ] + [short_poi, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
@@ -89,7 +89,7 @@ class Evaluate_Architecture():
 
         elif self.dataset_type == "region":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, y = my_data_loader.sample(datatype = "test")
-            self.test_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather]
+            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
@@ -130,7 +130,7 @@ class Evaluate_Architecture():
                 weather_type = self.weather_type, poi_type = self.poi_type, optimizer = self.optimizer, loss = self.loss, metrics = [])
             
             retrained_model_weight_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model_weight"
-            self.model.load_weights(retrained_model_weight_file_path).expect_partial()
+            self.model.load_weights(retrained_model_weight_file_path)
 
             # loading model directly from h5 file
             # retrained_model_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model.h5"
@@ -146,7 +146,7 @@ class Evaluate_Architecture():
                 weather_type = self.weather_type, optimizer = self.optimizer, loss = self.loss, metrics = [])
             
             retrained_model_weight_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model_weight"
-            self.model.load_weights(retrained_model_weight_file_path).expect_partial()
+            self.model.load_weights(retrained_model_weight_file_path)
 
             # loading model directly from h5 file
             # retrained_model_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model.h5"
