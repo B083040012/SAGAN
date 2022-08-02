@@ -447,9 +447,9 @@ class File_Loader():
                         2. outflow
                 """
                 if self.pred_target == "volume":
-                    labels.append(single_volume_data[t, station_idx, :])
+                    labels.append(single_volume_data[t, station_idx, :].flatten())
                 elif self.pred_target == "flow":
-                    labels.append(single_flow_data[t, station_idx, :])
+                    labels.append(single_flow_data[t, station_idx, :].flatten())
 
         for i in range(self.short_term_lstm_seq_len):
             short_nbhd_features[i] = np.array(short_nbhd_features[i])
