@@ -58,7 +58,7 @@ class Evaluate_Architecture():
         my_data_loader = File_Loader(self.dataset_type, self.config)
         if self.dataset_type == "station":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "test")
-            self.test_data = att_cnn, att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ] + [short_poi, ]
+            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ] + [short_poi, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
