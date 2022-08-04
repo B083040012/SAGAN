@@ -1,9 +1,15 @@
-import keras, attention
+import attention
 import numpy as np
 import tensorflow as tf
-from keras.models import Model
-from keras.layers import Dense, Activation, ReLU, PReLU, Input, Conv2D, Reshape, Flatten, \
-    Concatenate, LSTM, MaxPooling2D, AveragePooling2D
+
+try:
+    import keras
+    from keras.models import Model
+    from keras.layers import Dense, Activation, ReLU, PReLU, Input, Conv2D, Reshape, Flatten, Concatenate, LSTM, MaxPooling2D, AveragePooling2D
+except:
+    from tensorflow import keras
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.layers import Dense, Activation, ReLU, PReLU, Input, Conv2D, Reshape, Flatten, Concatenate, LSTM, MaxPooling2D, AveragePooling2D
 
 class Station_Functional_Model:
     def __init__(self, config):

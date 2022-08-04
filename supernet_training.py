@@ -1,8 +1,14 @@
-import keras, logging, time, supernet
+import logging, time, supernet
 import tensorflow as tf
 from file_loader import File_Loader
 from tensorflow.python.keras import backend as K
-from keras.callbacks import ModelCheckpoint, CSVLogger, ProgbarLogger
+
+try:
+    import keras
+    from keras.callbacks import ModelCheckpoint, CSVLogger, ProgbarLogger
+except:
+    from tensorflow import keras
+    from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, ProgbarLogger
 
 def get_model_memory_usage(batch_size, model):
     import numpy as np

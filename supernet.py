@@ -1,11 +1,15 @@
-import keras, itertools, attention, logging
+import itertools, attention
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
-from keras.models import Model, Sequential, load_model
-from keras.layers import Layer, Dense, Activation, ReLU, PReLU, Input, Conv2D, Reshape, Flatten, Dropout, BatchNormalization, Concatenate, LSTM, MaxPooling2D, AveragePooling2D
-from keras.optimizers import Adam, RMSprop
-from keras.callbacks import EarlyStopping, Callback, ModelCheckpoint
+
+try:
+    import keras
+    from keras.layers import Layer, Dense, Activation, ReLU, PReLU, Conv2D, Reshape, Flatten, \
+        Concatenate, LSTM, MaxPooling2D, AveragePooling2D
+except:
+    from tensorflow import keras
+    from tensorflow.keras.layers import Layer, Dense, Activation, ReLU, PReLU, Conv2D, Reshape, Flatten, \
+        Concatenate, LSTM, MaxPooling2D, AveragePooling2D
 
 class Conv_Choice_Block(Layer):
     def __init__(self, layer_name, choice_num = 3, filters = 64, padding = "same"):

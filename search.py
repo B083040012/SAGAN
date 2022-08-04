@@ -1,4 +1,4 @@
-import time, keras, logging, supernet
+import time, logging, supernet
 import numpy as np
 import tensorflow as tf
 from ASAGA import ASAGA_Searcher

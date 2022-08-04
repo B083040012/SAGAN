@@ -1,10 +1,16 @@
-import keras, logging, time, retrain_network
+import logging, time, retrain_network
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from file_loader import File_Loader
 from criterion import eval_together, eval_lstm
-from keras.callbacks import ModelCheckpoint, CSVLogger
+
+try:
+    import keras
+    from keras.callbacks import ModelCheckpoint, CSVLogger
+except:
+    from tensorflow import keras
+    from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 
 def get_model_memory_usage(batch_size, model):
     import numpy as np

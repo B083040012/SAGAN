@@ -1,5 +1,10 @@
-from keras.layers import Layer
-import keras.backend as K
+try:
+    from keras.layers import Layer
+    import keras.backend as K
+except:
+    from tensorflow.keras.layers import Layer
+    import tensorflow.keras.backend as K
+
 class Attention(Layer):
     def __init__(self, method=None, **kwargs):
         self.supports_masking = True

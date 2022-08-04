@@ -1,6 +1,4 @@
-from cmath import phase
-from email.policy import default
-import logging, yaml, argparse, os, sys, itertools
+import logging, yaml, argparse, os, sys
 import numpy as np
 from time import strftime, gmtime
 from file_loader import File_Loader
