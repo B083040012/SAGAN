@@ -70,15 +70,20 @@ experiment:
       # current date: 0 ~ 40, current time: 0 ~ 48
       start_date_train: 0
       end_date_train: 40
-      start_hour_train: 18
-      end_hour_train: 36
+      start_hour_train: 0
+      end_hour_train: 48
+      # limit data time for supernet training and searching
+      limit_start_date_train: 25
+      limit_end_date_train: 40
+      limit_start_hour_train: 0
+      limit_end_hour_train: 48
       # testing data time
       # date: (start)~(end-1), hour: (start)~(end-1)
       # current date: 0 ~ 20, current time: 0 ~ 48
       start_date_test: 0
       end_date_test: 20
-      start_hour_test: 18
-      end_hour_test: 36
+      start_hour_test: 0
+      end_hour_test: 48
       # max value for each dataset, used for normalized / denormalized
       volume_train_max: 244.0
       flow_train_max: 41.0
@@ -111,15 +116,20 @@ experiment:
       # current date: 0 ~ 40, current time: 0 ~ 48
       start_date_train: 0
       end_date_train: 40
-      start_hour_train: 18
-      end_hour_train: 36
+      start_hour_train: 0
+      end_hour_train: 48
+      # limit data time for supernet training and searching
+      limit_start_date_train: 25
+      limit_end_date_train: 40
+      limit_start_hour_train: 0
+      limit_end_hour_train: 48
       # testing data time
       # date: (start)~(end-1), hour: (start)~(end-1)
       # current date: 0 ~ 20, current time: 0 ~ 48
       start_date_test: 0
       end_date_test: 20
-      start_hour_test: 18
-      end_hour_test: 36
+      start_hour_test: 0
+      end_hour_test: 48
       # validation ratio for searching architecture
       validation_ratio: 0.2
       # prediction target
@@ -229,15 +239,20 @@ debug:
       # current date: 0 ~ 40, current time: 0 ~ 48
       start_date_train: 39
       end_date_train: 40
-      start_hour_train: 18
-      end_hour_train: 36
+      start_hour_train: 0
+      end_hour_train: 48
+      # limit data time for supernet training and searching
+      limit_start_date_train: 39
+      limit_end_date_train: 40
+      limit_start_hour_train: 0
+      limit_end_hour_train: 48
       # testing data time
       # date: (start)~(end-1), hour: (start)~(end-1)
       # current date: 0 ~ 20, current time: 0 ~ 48
       start_date_test: 19
       end_date_test: 20
-      start_hour_test: 18
-      end_hour_test: 36
+      start_hour_test: 0
+      end_hour_test: 48
       # max value for each dataset, used for normalized / denormalized
       volume_train_max: 244.0
       flow_train_max: 41.0
@@ -270,15 +285,20 @@ debug:
       # current date: 0 ~ 40, current time: 0 ~ 48
       start_date_train: 39
       end_date_train: 40
-      start_hour_train: 18
-      end_hour_train: 36
+      start_hour_train: 0
+      end_hour_train: 48
+      # limit data time for supernet training and searching
+      limit_start_date_train: 39
+      limit_end_date_train: 40
+      limit_start_hour_train: 0
+      limit_end_hour_train: 48
       # testing data time
       # date: (start)~(end-1), hour: (start)~(end-1)
       # current date: 0 ~ 20, current time: 0 ~ 48
       start_date_test: 19
       end_date_test: 20
-      start_hour_test: 18
-      end_hour_test: 36
+      start_hour_test: 0
+      end_hour_test: 48
       # validation ratio for searching architecture
       validation_ratio: 0.2
       # prediction target

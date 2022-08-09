@@ -3,12 +3,13 @@ import numpy as np
 import random
 
 class File_Loader():
-    def __init__(self, dataset_type, config):
+    def __init__(self, dataset_type, config, limit_dataset = False):
         """
         Initilalize parameters
         """
         self.dataset_type = dataset_type
         self.config = config
+        self.limit_dataset = limit_dataset
         self.att_lstm_num = config["dataset"][self.dataset_type]["att_lstm_num"]
         self.long_term_lstm_seq_len = config["dataset"][self.dataset_type]["long_term_lstm_seq_len"]
         self.short_term_lstm_seq_len = config["dataset"][self.dataset_type]["short_term_lstm_seq_len"]
@@ -42,10 +43,17 @@ class File_Loader():
             self.single_flow_train = np.load(self.config["file"]["station"]["single_flow_train"]) / self.config["dataset"]["station"]["single_flow_train_max"]
         self.weather_train = np.load(self.config["file"]["station"]["weather_train"])
         self.poi_data = np.load(self.config["file"]["station"]["poi_data"])
-        self.start_date = self.config["dataset"]["station"]["start_date_train"]
-        self.end_date = self.config["dataset"]["station"]["end_date_train"]
-        self.start_hour = self.config["dataset"]["station"]["start_hour_train"]
-        self.end_hour = self.config["dataset"]["station"]["end_hour_train"]
+        if self.limit_dataset == False:
+            self.start_date = self.config["dataset"]["station"]["start_date_train"]
+            self.end_date = self.config["dataset"]["station"]["end_date_train"]
+            self.start_hour = self.config["dataset"]["station"]["start_hour_train"]
+            self.end_hour = self.config["dataset"]["station"]["end_hour_train"]
+        else:
+            print("limit_dataset")
+            self.start_date = self.config["dataset"]["station"]["limit_start_date_train"]
+            self.end_date = self.config["dataset"]["station"]["limit_end_date_train"]
+            self.start_hour = self.config["dataset"]["station"]["limit_start_hour_train"]
+            self.end_hour = self.config["dataset"]["station"]["limit_end_hour_train"]
 
     def load_test_station(self):
         """
@@ -78,10 +86,17 @@ class File_Loader():
             print("invalid target for region-level dataset !!")
             raise Exception
         self.weather_train = np.load(self.config["file"]["region"]["weather_train"])
-        self.start_date = self.config["dataset"]["region"]["start_date_train"]
-        self.end_date = self.config["dataset"]["region"]["end_date_train"]
-        self.start_hour = self.config["dataset"]["region"]["start_hour_train"]
-        self.end_hour = self.config["dataset"]["region"]["end_hour_train"]
+        if self.limit_dataset == False:
+            self.start_date = self.config["dataset"]["region"]["start_date_train"]
+            self.end_date = self.config["dataset"]["region"]["end_date_train"]
+            self.start_hour = self.config["dataset"]["region"]["start_hour_train"]
+            self.end_hour = self.config["dataset"]["region"]["end_hour_train"]
+        else:
+            print("limit_dataset")
+            self.start_date = self.config["dataset"]["region"]["limit_start_date_train"]
+            self.end_date = self.config["dataset"]["region"]["limit_end_date_train"]
+            self.start_hour = self.config["dataset"]["region"]["limit_start_hour_train"]
+            self.end_hour = self.config["dataset"]["region"]["limit_end_hour_train"]
 
     def load_test_region(self):
         """

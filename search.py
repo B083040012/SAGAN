@@ -32,7 +32,7 @@ class Search():
         """
         Load validation dataset
         """
-        my_data_loader = File_Loader(self.dataset_type, self.config)
+        my_data_loader = File_Loader(self.dataset_type, self.config, limit_dataset = True)
         if self.dataset_type == "station":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "validation")
             self.val_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]

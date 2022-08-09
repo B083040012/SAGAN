@@ -98,7 +98,7 @@ class Supernet_Training():
             * if ram cannot handle, maybe need to load from supernet_training object
             * can be loaded from the training_model method
         """
-        my_data_loader = File_Loader(self.dataset_type, self.config)
+        my_data_loader = File_Loader(self.dataset_type, self.config, limit_dataset = True)
         if self.dataset_type == "station":
             att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "train")
             self.train_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]
