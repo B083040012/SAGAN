@@ -185,7 +185,8 @@ class ASAGA_Searcher():
         new_fitness=parent_subfitness
         for i in range(len(parent_subfitness)):
             prob=np.random.uniform(0,1)
-            accept_prob=math.exp(-(offspring_subfitness[i]-parent_subfitness[i])/self.curr_tmp)
+            accept_prob=math.exp((-(offspring_subfitness[i]-parent_subfitness[i]) * 100000)/self.curr_tmp)
+            print("accept_prob: ", accept_prob)
             if parent_subfitness[i] > offspring_subfitness[i]:
                 parent_population[index_list[i]] = offspring_list[i]
                 new_fitness[i] = offspring_subfitness[i]
