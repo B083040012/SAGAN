@@ -64,7 +64,7 @@ experiment:
       cnn_flat_size: 128
       # values under the threshold will not be evaluate in testing
       # notice that this threshold is the denormalized value
-      threshold: 10
+      threshold: 15
       # training data time
       # date: (start)~(end-1), hour: (start)~(end-1)
       # current date: 0 ~ 40, current time: 0 ~ 48
