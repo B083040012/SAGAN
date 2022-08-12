@@ -73,7 +73,7 @@ experiment:
       start_hour_train: 0
       end_hour_train: 48
       # limit data time for supernet training and searching
-      limit_start_date_train: 25
+      limit_start_date_train: 30
       limit_end_date_train: 40
       limit_start_hour_train: 0
       limit_end_hour_train: 48
