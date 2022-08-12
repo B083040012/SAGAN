@@ -30,8 +30,8 @@ class ASAGA_Searcher():
         self.annealing_ratio = config["searching"]["asaga"]["annealing_ratio"]
         self.initial_tmp = config["searching"]["asaga"]["initial_tmp"]
         self.final_tmp = config["searching"]["asaga"]["final_tmp"]
-        self.crossover_prob = config["searching"]["asaga"]["crossover_prob"]
-        self.annealing_prob = config["searching"]["asaga"]["annealing_prob"]
+        self.crossover_rate = config["searching"]["asaga"]["crossover_rate"]
+        self.mutation_rate = config["searching"]["asaga"]["mutation_rate"]
 
         # used for denormalized
         target = config["dataset"][dataset_type]["pred_target"]
@@ -78,30 +78,48 @@ class ASAGA_Searcher():
                 7. long_conv_activ_choice: level * long_lstm_num * long_lstm_seq_len * 2 (nbhd / flow)
                 8. long_gate_activ_choice: level * long_lstm_num * long_lstm_seq_len * 1
             """
+            # short_conv_choice = list(np.random.randint(self.conv_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int))
+            # short_pooling_choice = list(np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int))
+            # short_conv_activ_choice = list(np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int))
+            # short_gate_activ_choice = list(np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len), dtype = int))
+
+            # # long term choice
+            # long_conv_choice = list(np.random.randint(self.conv_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int))
+            # long_pooling_choice = list(np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int))
+            # long_conv_activ_choice = list(np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int))
+            # long_gate_activ_choice = list(np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len), dtype = int))
             # short term choice
-            short_conv_choice = list(np.random.randint(self.conv_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2)))
-            short_pooling_choice = list(np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2)))
-            short_conv_activ_choice = list(np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2)))
-            short_gate_activ_choice = list(np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len)))
+            short_conv_choice = np.random.randint(self.conv_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int)
+            short_pooling_choice = np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int)
+            short_conv_activ_choice = np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len, 2), dtype = int)
+            short_gate_activ_choice = np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.short_term_lstm_seq_len), dtype = int)
 
             # long term choice
-            long_conv_choice = list(np.random.randint(self.conv_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2)))
-            long_pooling_choice = list(np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2)))
-            long_conv_activ_choice = list(np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2)))
-            long_gate_activ_choice = list(np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len)))
+            long_conv_choice = np.random.randint(self.conv_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int)
+            long_pooling_choice = np.random.randint(self.pooling_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int)
+            long_conv_activ_choice = np.random.randint(self.conv_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len, 2), dtype = int)
+            long_gate_activ_choice = np.random.randint(self.gate_activ_choice_num, size = (self.gate_level, self.att_lstm_num, self.long_term_lstm_seq_len), dtype = int)
             architecture = [short_conv_choice, short_pooling_choice, short_conv_activ_choice, short_gate_activ_choice, \
                 long_conv_choice, long_pooling_choice, long_conv_activ_choice, long_gate_activ_choice]
-            
             parent_population.append(architecture)
         
         # evaluate each architecture
-        parent_population=np.array(parent_population)
+        # parent_population=np.array(parent_population)
+        self.logger.info("[Architecture Searching] shape of parent_population")
+        for sub_list in parent_population[0]:
+            self.logger.info("shape = {0}".format(sub_list.shape))
         self.logger.info("[Architecture Searching] evaluating parent population, wait for a sec...")
         parent_fitness=self.evaluate_architecture(parent_population)
         self.logger.info("[Architecture Searching] fitness of each initialized parent: ")
         for index, fitness in enumerate(parent_fitness):
             self.logger.info("[Architecture {0}]: fitness = {1}".format(index, fitness))
         tmp_best_loss=min(parent_fitness)
+        # determine the scaler for SA acceptence probability
+        tmp_worst_loss = max(parent_fitness)
+        self.scaler = 1
+        while (tmp_worst_loss - tmp_best_loss) * self.scaler < 1:
+            self.scaler *= 10
+        self.logger.info("[Architecture Searching] scaler = {0}".format(self.scaler))
         tmp_best_index=parent_fitness.index(tmp_best_loss)
         self.logger.info("[Architecture Searching] population initialize complete,  tmp_best_loss: %.5f" %(tmp_best_loss))
 
@@ -129,7 +147,10 @@ class ASAGA_Searcher():
                 index_list = [all_index_list.pop(), all_index_list.pop()]
                 parent_list=[parent_population[index] for index in index_list]
                 parent_subfitness=[parent_fitness[index] for index in index_list]
+                # print(parent_list[1][])
                 offspring_list=self.crossover(parent_list)
+                # print(parent_list[1])
+                self.mutation(offspring_list)
                 offspring_subfitness=self.evaluate_architecture(offspring_list)
                 new_fitness=self.selection(parent_subfitness, offspring_subfitness, parent_population, offspring_list, index_list)
                 for i in range(len(new_fitness)):
@@ -164,30 +185,63 @@ class ASAGA_Searcher():
         offspring_list.append([])
         for sub_index in range(0, len(parent_list[0])):
             prob = np.random.uniform(0,1)
-            cross_point=np.random.randint(low=0, high=len(parent_list[0][sub_index]))
-            tmp_sublist = [parent_list[0][sub_index], parent_list[1][sub_index]]
-            if prob > self.crossover_prob:
-                tmp_sublist[0][:cross_point]=parent_list[1][sub_index][:cross_point]
-                tmp_sublist[1][cross_point:]=parent_list[0][sub_index][cross_point:]
+            cross_point=np.random.randint(low=0, high=len(parent_list[0][sub_index].flatten()))
+            shape = parent_list[0][sub_index].shape
+            tmp_sublist = [parent_list[0][sub_index].flatten(), parent_list[1][sub_index].flatten()]
+            if prob > self.crossover_rate:
+                tmp_sublist[0][:cross_point]=parent_list[1][sub_index].flatten()[:cross_point]
+                tmp_sublist[1][cross_point:]=parent_list[0][sub_index].flatten()[cross_point:]
 
-            offspring_list[0].append(tmp_sublist[0])
-            offspring_list[1].append(tmp_sublist[1])
+            offspring_list[0].append(tmp_sublist[0].reshape(shape))
+            offspring_list[1].append(tmp_sublist[1].reshape(shape))
         return offspring_list
+
+    def mutation(self, offspring_list):
+        """
+        Mutation (Swap Mutation)
+            for each sublist, if the prob is lower than mutation_rate:
+            1. randomly choose two swap point
+            2. choose again if both value are same
+            3. swap the value of two point
+        """
+        for offspring in offspring_list:
+            for sub_list in offspring:
+                prob = np.random.uniform(0, 1)
+                if prob > self.mutation_rate:
+                    continue
+                shape = sub_list.shape
+                flat_sub_list = sub_list.flatten()
+                swap_p1, swap_p2 = np.random.randint(low=0, high=len(flat_sub_list)), np.random.randint(low=0, high=len(flat_sub_list))
+                cnt = 0
+                while (flat_sub_list[swap_p1] == flat_sub_list[swap_p2]) and (cnt < 5):
+                    swap_p1, swap_p2 = np.random.randint(low=0, high=len(flat_sub_list)), np.random.randint(low=0, high=len(flat_sub_list))
+                    cnt += 1
+                flat_sub_list[swap_p1], flat_sub_list[swap_p2] = flat_sub_list[swap_p2], flat_sub_list[swap_p1]
+                sub_list = flat_sub_list.reshape(shape)
 
     def selection(self, parent_subfitness, offspring_subfitness, parent_population, offspring_list, index_list):
         """
         Selection
             1. select the better offspring or may reserve the bad offspring depending on SA
-            2. replace population directly
+            2. replace current population directly
             3. return new fitness value (* may have better solution)
             * maybe have to check the architecture is valid or not--> for now, there is no need to check this problem
         """
         new_fitness=parent_subfitness
         for i in range(len(parent_subfitness)):
             prob=np.random.uniform(0,1)
-            accept_prob=math.exp((-(offspring_subfitness[i]-parent_subfitness[i]) * 100000)/self.curr_tmp)
-            print("accept_prob: ", accept_prob)
-            if parent_subfitness[i] > offspring_subfitness[i]:
+            accept_prob = 0
+            if parent_subfitness[i] < offspring_subfitness[i]:
+                fitness_diff = -(offspring_subfitness[i]-parent_subfitness[i])
+                # too small, ignore the difference
+                if fitness_diff * self.scaler > -0.1:
+                    continue
+                # two criterion for SA acceptance probability
+                accept_prob = math.exp( (fitness_diff * self.scaler) / self.curr_tmp)
+                # accept_prob = 1 / (1 + math.exp( fitness_diff * self.scaler / self.curr_tmp))
+                self.logger.info("temp: {0}, offspring: {1}, parent: {2}, accept_prob: {3}, prob: {4}".format(self.curr_tmp, \
+                    offspring_subfitness[i], parent_subfitness[i], accept_prob, prob))
+            if parent_subfitness[i] >= offspring_subfitness[i]:
                 parent_population[index_list[i]] = offspring_list[i]
                 new_fitness[i] = offspring_subfitness[i]
             elif prob < accept_prob:

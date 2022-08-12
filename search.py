@@ -1,3 +1,4 @@
+from re import search
 import time, logging, supernet
 import numpy as np
 import tensorflow as tf
@@ -112,6 +113,10 @@ class Search():
 
         # saving searched architecture
         architecture_file_path = self.test_dir + self.config["file"]["model_path"] + "searched_choice_list"
+        for index in range(len(searched_architecture)):
+            searched_architecture[index] = searched_architecture[index].tolist()
+        self.logger.info("[Architecture Searching] searched architecture: {0}".format(searched_architecture))
+        searched_architecture = np.array(searched_architecture)
         np.save(architecture_file_path, searched_architecture)
         self.logger.info("[Architecture Searching] architecture saved")
 

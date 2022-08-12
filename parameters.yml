@@ -138,13 +138,14 @@ experiment:
   searching: 
     # parameters for asaga
     asaga:
-      generation_num: 15
+      generation_num: 10
       population_num: 20
       annealing_ratio: 0.9
-      initial_tmp: 200
-      final_tmp: 1
-      crossover_prob: 0.8
+      initial_tmp: 1
+      final_tmp: 0
+      crossover_rate: 0.8
       annealing_prob: 1
+      mutation_rate: 0.05
 
   model:
     # parameter for supernet / architecture
@@ -310,10 +311,11 @@ debug:
       generation_num: 2
       population_num: 8
       annealing_ratio: 0.9
-      initial_tmp: 200
-      final_tmp: 1
-      crossover_prob: 0.8
+      initial_tmp: 1
+      final_tmp: 0
+      crossover_rate: 0.8
       annealing_prob: 1
+      mutation_rate: 0.05
 
   model:
     # parameter for supernet / architecture
