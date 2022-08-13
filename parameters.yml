@@ -85,10 +85,10 @@ experiment:
       start_hour_test: 0
       end_hour_test: 48
       # limit version for test dataset
-      limit_start_date_train: 10
-      limit_end_date_train: 20
-      limit_start_hour_train: 0
-      limit_end_hour_train: 48
+      limit_start_date_test: 10
+      limit_end_date_test: 20
+      limit_start_hour_test: 0
+      limit_end_hour_test: 48
       # max value for each dataset, used for normalized / denormalized
       volume_train_max: 244.0
       flow_train_max: 41.0
@@ -135,6 +135,11 @@ experiment:
       end_date_test: 20
       start_hour_test: 0
       end_hour_test: 48
+      # limit version for test dataset
+      limit_start_date_test: 10
+      limit_end_date_test: 20
+      limit_start_hour_test: 0
+      limit_end_hour_test: 48
       # validation ratio for searching architecture
       validation_ratio: 0.2
       # prediction target
@@ -260,10 +265,10 @@ debug:
       start_hour_test: 0
       end_hour_test: 48
       # limit version for test dataset
-      limit_start_date_train: 10
-      limit_end_date_train: 20
-      limit_start_hour_train: 0
-      limit_end_hour_train: 48
+      limit_start_date_test: 10
+      limit_end_date_test: 20
+      limit_start_hour_test: 0
+      limit_end_hour_test: 48
       # max value for each dataset, used for normalized / denormalized
       volume_train_max: 244.0
       flow_train_max: 41.0
@@ -310,6 +315,11 @@ debug:
       end_date_test: 20
       start_hour_test: 0
       end_hour_test: 48
+      # limit version for test dataset
+      limit_start_date_test: 10
+      limit_end_date_test: 20
+      limit_start_hour_test: 0
+      limit_end_hour_test: 48
       # validation ratio for searching architecture
       validation_ratio: 0.2
       # prediction target
