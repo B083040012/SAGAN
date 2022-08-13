@@ -66,10 +66,17 @@ class File_Loader():
             self.single_flow_test = np.load(self.config["file"]["station"]["single_flow_test"]) / self.config["dataset"]["station"]["single_flow_test_max"]
         self.weather_test = np.load(self.config["file"]["station"]["weather_test"])
         self.poi_data = np.load(self.config["file"]["station"]["poi_data"])
-        self.start_date = self.config["dataset"]["station"]["start_date_test"]
-        self.end_date = self.config["dataset"]["station"]["end_date_test"]
-        self.start_hour = self.config["dataset"]["station"]["start_hour_test"]
-        self.end_hour = self.config["dataset"]["station"]["end_hour_test"]
+        if self.limit_dataset == False:
+            self.start_date = self.config["dataset"]["station"]["start_date_test"]
+            self.end_date = self.config["dataset"]["station"]["end_date_test"]
+            self.start_hour = self.config["dataset"]["station"]["start_hour_test"]
+            self.end_hour = self.config["dataset"]["station"]["end_hour_test"]
+        else:
+            print("limit_dataset")
+            self.start_date = self.config["dataset"]["station"]["limit_start_date_test"]
+            self.end_date = self.config["dataset"]["station"]["limit_end_date_test"]
+            self.start_hour = self.config["dataset"]["station"]["limit_start_hour_test"]
+            self.end_hour = self.config["dataset"]["station"]["limit_end_hour_test"]
 
     def load_train_region(self):
         """
@@ -108,10 +115,17 @@ class File_Loader():
             print("invalid target for region-level dataset !!")
             raise Exception
         self.weather_test = np.load(self.config["file"]["region"]["weather_test"])
-        self.start_date = self.config["dataset"]["region"]["start_date_test"]
-        self.end_date = self.config["dataset"]["region"]["end_date_test"]
-        self.start_hour = self.config["dataset"]["region"]["start_hour_test"]
-        self.end_hour = self.config["dataset"]["region"]["end_hour_test"]
+        if self.limit_dataset == False:
+            self.start_date = self.config["dataset"]["region"]["start_date_test"]
+            self.end_date = self.config["dataset"]["region"]["end_date_test"]
+            self.start_hour = self.config["dataset"]["region"]["start_hour_test"]
+            self.end_hour = self.config["dataset"]["region"]["end_hour_test"]
+        else:
+            print("limit_dataset")
+            self.start_date = self.config["dataset"]["region"]["limit_start_date_test"]
+            self.end_date = self.config["dataset"]["region"]["limit_end_date_test"]
+            self.start_hour = self.config["dataset"]["region"]["limit_start_hour_test"]
+            self.end_hour = self.config["dataset"]["region"]["limit_end_hour_test"]
     
     def sample_station(self, datatype):
         """
@@ -129,7 +143,7 @@ class File_Loader():
             raise Exception
         
         # loading data depends on datatype
-        if datatype == "train":
+        if datatype == "train" or "validation":
             self.load_train_station()
             volume_data = self.volume_train
             flow_data = self.flow_train
@@ -138,7 +152,7 @@ class File_Loader():
             single_volume_data = self.single_volume_train
             if self.pred_target == "flow":
                 single_flow_data = self.single_flow_train
-        elif datatype == "validation" or "test":
+        elif datatype == "test":
             self.load_test_station()
             volume_data = self.volume_test
             flow_data = self.flow_test
