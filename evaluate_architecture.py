@@ -43,12 +43,12 @@ class Evaluate_Architecture():
         stream_handler = logging.StreamHandler()
         file_handler.setFormatter(formatter)
         stream_handler.setFormatter(formatter)
-        logger = logging.getLogger('evaluate_architecture')
+        logger = logging.getLogger('evaluate_architecture' + test_dir)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
         logger.addHandler(stream_handler)
 
-        self.logger = logging.getLogger('evaluate_architecture')
+        self.logger = logging.getLogger('evaluate_architecture' + test_dir)
         self.test_dir = test_dir
 
     def load_data(self, logger):

@@ -83,12 +83,12 @@ class Architecture_Retrain():
         stream_handler = logging.StreamHandler()
         file_handler.setFormatter(formatter)
         stream_handler.setFormatter(formatter)
-        logger = logging.getLogger('architecture_retraining')
+        logger = logging.getLogger('architecture_retraining' + test_dir)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
         logger.addHandler(stream_handler)
 
-        self.logger = logging.getLogger('architecture_retraining')
+        self.logger = logging.getLogger('architecture_retraining' + test_dir)
         self.test_dir = test_dir
 
     def load_data(self, logger):

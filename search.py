@@ -21,12 +21,12 @@ class Search():
         stream_handler = logging.StreamHandler()
         file_handler.setFormatter(formatter)
         stream_handler.setFormatter(formatter)
-        logger = logging.getLogger('architecture_searching')
+        logger = logging.getLogger('architecture_searching' + test_dir)
         logger.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
         logger.addHandler(stream_handler)
 
-        self.logger = logging.getLogger('architecture_searching')
+        self.logger = logging.getLogger('architecture_searching' + test_dir)
         self.test_dir = test_dir
 
     def load_data(self, logger):
