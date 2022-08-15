@@ -143,7 +143,7 @@ class File_Loader():
             raise Exception
         
         # loading data depends on datatype
-        if datatype == "train" or "validation":
+        if datatype == "train" or datatype == "validation":
             self.load_train_station()
             volume_data = self.volume_train
             flow_data = self.flow_train
@@ -511,12 +511,12 @@ class File_Loader():
             print("Att-lstm seq_len must be odd!")
             raise Exception
 
-        if datatype == "train":
+        if datatype == "train" or datatype == "validation":
             self.load_train_region()
             data = self.volume_train
             flow_data = self.flow_train
             weather_data = self.weather_train
-        elif datatype == "validation" or "test":
+        elif datatype == "test":
             self.load_test_region()
             data = self.volume_test
             flow_data = self.flow_test
