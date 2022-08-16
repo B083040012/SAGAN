@@ -172,10 +172,10 @@ class Evaluate_Architecture():
         
         self.logger.info("[Evaluate Architecture With Denormalized] evaluating start...")
         test_pred *= self.label_max
-        self.test_label *= self.label_max
+        test_label = self.test_label * self.label_max
         self.logger.info("[Evaluate Architecture] evaluating threshold: {0}".format(self.threshold_denormalize))
-        total_loss_rmse, total_loss_mape = eval_together(self.test_label, test_pred, self.threshold_denormalize)
-        (prmse, pmape), (drmse, dmape) = eval_lstm(self.test_label, test_pred, self.threshold_denormalize)
+        total_loss_rmse, total_loss_mape = eval_together(test_label, test_pred, self.threshold_denormalize)
+        (prmse, pmape), (drmse, dmape) = eval_lstm(test_label, test_pred, self.threshold_denormalize)
         self.logger.info("[Evaluate Architecture With Denormalize] pickup rmse = {0}, pickup mape = {1}%\n\
             dropoff rmse = {2}, dropoff mape = {3}%".format(prmse, pmape * 100, drmse, dmape * 100))
         self.logger.info("[Evaluate Architecture With Denormalize] total_rmse = {0}, total_mape = {1}".format(total_loss_rmse, total_loss_mape * 100))
