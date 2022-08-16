@@ -152,6 +152,7 @@ class File_Loader():
             single_volume_data = self.single_volume_train
             if self.pred_target == "flow":
                 single_flow_data = self.single_flow_train
+            print("train single volume shape: {0}".format(single_volume_data.shape))
         elif datatype == "test":
             self.load_test_station()
             volume_data = self.volume_test
@@ -161,6 +162,7 @@ class File_Loader():
             single_volume_data = self.single_volume_test
             if self.pred_target == "flow":
                 single_flow_data = self.single_flow_test
+            print("test single volume shape: {0}".format(single_volume_data.shape))
         else:
             print("Please select 'train', 'validation', or 'test'")
             raise Exception
