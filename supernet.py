@@ -320,7 +320,7 @@ class Station_Supernet_Subclass_Model(keras.Model):
 
     # @tf.function
     def call(self, inputs):
-        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather, nbhd_inputs, flow_inputs, lstm_inputs, weather, poi_data = inputs
+        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, nbhd_inputs, flow_inputs, lstm_inputs, poi_data = inputs
 
         att_nbhd_inputs = []
         att_flow_inputs = []
@@ -378,10 +378,10 @@ class Station_Supernet_Subclass_Model(keras.Model):
         poi_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(poi_vec)
 
         # feature concatenate
-        # lstm_feature, nbhd_convs, weather, poi
+        # lstm_feature, nbhd_convs, poi
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
-        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather, poi_vec])
+        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, poi_vec])
 
         #lstm
         lstm = self.short_lstm(lstm_input)
@@ -430,7 +430,7 @@ class Station_Supernet_Subclass_Model(keras.Model):
 
         att_nbhd_vec = [Concatenate(axis=-1)(att_nbhd_vecs[att]) for att in range(self.att_lstm_num)]
         att_nbhd_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_nbhd_vec[att]) for att in range(self.att_lstm_num)]
-        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather[att], att_poi_vec[att]]) for att in range(self.att_lstm_num)]
+        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_poi_vec[att]]) for att in range(self.att_lstm_num)]
 
         att_lstms = [self.long_lstm[att](att_lstm_input[att]) for att in range(self.att_lstm_num)]
 
@@ -625,7 +625,7 @@ class Region_Supernet_Subclass_Model(keras.Model):
 
     # @tf.function
     def call(self, inputs):
-        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather, nbhd_inputs, flow_inputs, lstm_inputs, weather = inputs
+        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, nbhd_inputs, flow_inputs, lstm_inputs = inputs
 
         att_nbhd_inputs = []
         att_flow_inputs = []
@@ -674,10 +674,10 @@ class Region_Supernet_Subclass_Model(keras.Model):
         nbhd_vecs = [Activation("relu", name = "nbhd_dense_activation_time{0}".format(ts+1))(nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
 
         # feature concatenate
-        # lstm_feature, nbhd_convs, weather, poi
+        # lstm_feature, nbhd_convs, poi
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
-        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather])
+        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec])
 
         #lstm
         lstm = self.short_lstm(lstm_input)
@@ -719,7 +719,7 @@ class Region_Supernet_Subclass_Model(keras.Model):
 
         att_nbhd_vec = [Concatenate(axis=-1)(att_nbhd_vecs[att]) for att in range(self.att_lstm_num)]
         att_nbhd_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_nbhd_vec[att]) for att in range(self.att_lstm_num)]
-        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather[att]]) for att in range(self.att_lstm_num)]
+        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att]]) for att in range(self.att_lstm_num)]
 
         att_lstms = [self.long_lstm[att](att_lstm_input[att]) for att in range(self.att_lstm_num)]
 
