@@ -14,7 +14,18 @@ git clone https://github.com/B083040012/SAGAN.git
 ```
 * first unzip the region-level dataset in ./data/region
 * for differnet external features
+    * no poi feature for `region level` now
+    * `git checkout no_external_feature` for no external feature (exclude weather & poi)
+    * `git checkout poi_only` for poi feature only (exclude weather)
     * `git checkout weather_only` for weather feature only (exclude poi)
+    * details for region & station level in different branches
+
+| branches / level | Region | Station |
+| ------------------ | ------ | ------- |
+| `main` | weather:✔️<br>poi:❌ | weather:✔️<br>poi:✔️ |
+| `no external feature` | weather:❌<br>poi:❌ | weather:❌<br>poi:❌ |
+| `poi_only` | weather:❌<br>poi:❌ | weather:❌<br>poi:✔️ |
+| `weather_only` | weather:✔️<br>poi:❌ | weather:✔️<br>poi:❌ |
 
 ### From Command Line
 
