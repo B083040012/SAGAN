@@ -57,17 +57,14 @@ class Evaluate_Architecture():
         """
         my_data_loader = File_Loader(self.dataset_type, self.config)
         if self.dataset_type == "station":
-            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "test")
-            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ] + [short_poi, ]
+            att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm, y = my_data_loader.sample(datatype = "test")
+            self.test_data = att_cnn + att_flow + att_lstm + short_cnn + short_flow + [short_lstm, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
             self.nbhd_size = short_cnn[0].shape[1]
-            self.poi_size = short_poi.shape[1]
             self.nbhd_type = short_cnn[0].shape[-1]
             self.flow_type = short_flow[0].shape[-1]
-            self.weather_type = short_weather.shape[-1]
-            self.poi_type = short_poi.shape[-1]
 
             # if label are all below threshold, end the program
             valid_label = np.sum(self.test_label > self.threshold)
@@ -79,34 +76,28 @@ class Evaluate_Architecture():
             logger.info("att_cnn: {0}, {1}".format(len(att_cnn), att_cnn[0].shape))
             logger.info("att_flow: {0}, {1}".format(len(att_flow), att_flow[0].shape))
             logger.info("att_lstm: {0}, {1}".format(len(att_lstm), att_lstm[0].shape))
-            logger.info("att_weather: {0}, {1}".format(len(att_weather), att_weather[0].shape))
             logger.info("short_cnn: {0}, {1}".format(len(short_cnn), short_cnn[0].shape))
             logger.info("short_flow: {0}, {1}".format(len(short_flow), short_flow[0].shape))
             logger.info("short_lstm: {0}".format(short_lstm.shape))
-            logger.info("short_weather: {0}".format(short_weather.shape))
-            logger.info("short poi: {0}".format(short_poi.shape))
             logger.info("y: {0}".format(y.shape))
 
         elif self.dataset_type == "region":
-            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, y = my_data_loader.sample(datatype = "test")
-            self.test_data = att_cnn + att_flow + att_lstm + att_weather + short_cnn + short_flow + [short_lstm, ] + [short_weather, ]
+            att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm, y = my_data_loader.sample(datatype = "test")
+            self.test_data = att_cnn + att_flow + att_lstm + short_cnn + short_flow + [short_lstm, ]
             self.test_label = y
 
             self.feature_vec_len = short_lstm.shape[-1]
             self.nbhd_size = short_cnn[0].shape[1]
             self.nbhd_type = short_cnn[0].shape[-1]
             self.flow_type = short_flow[0].shape[-1]
-            self.weather_type = short_weather.shape[-1]
 
             logger.info("[Agent] shapes of each region-level inputs for operation Evaluate Architecture")
             logger.info("att_cnn: {0}, {1}".format(len(att_cnn), att_cnn[0].shape))
             logger.info("att_flow: {0}, {1}".format(len(att_flow), att_flow[0].shape))
             logger.info("att_lstm: {0}, {1}".format(len(att_lstm), att_lstm[0].shape))
-            logger.info("att_weather: {0}, {1}".format(len(att_weather), att_weather[0].shape))
             logger.info("short_cnn: {0}, {1}".format(len(short_cnn), short_cnn[0].shape))
             logger.info("short_flow: {0}, {1}".format(len(short_flow), short_flow[0].shape))
             logger.info("short_lstm: {0}".format(short_lstm.shape))
-            logger.info("short_weather: {0}".format(short_weather.shape))
             logger.info("y: {0}".format(y.shape))
 
     def load_model(self):
@@ -126,8 +117,8 @@ class Evaluate_Architecture():
             searched_choice_file_path = self.test_dir + self.config["file"]["model_path"] + "searched_choice_list.npy"
             searched_choice=np.load(open(searched_choice_file_path, "rb"), allow_pickle = True)
             self.model = modeler.func_model(nas_choice = searched_choice, feature_vec_len = self.feature_vec_len, \
-                nbhd_size = self.nbhd_size, poi_size = self.poi_size, nbhd_type = self.nbhd_type, flow_type = self.flow_type, \
-                weather_type = self.weather_type, poi_type = self.poi_type, optimizer = self.optimizer, loss = self.loss, metrics = [])
+                nbhd_size = self.nbhd_size, nbhd_type = self.nbhd_type, flow_type = self.flow_type, \
+                optimizer = self.optimizer, loss = self.loss, metrics = [])
             
             retrained_model_weight_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model_weight"
             self.model.load_weights(retrained_model_weight_file_path)
@@ -143,7 +134,7 @@ class Evaluate_Architecture():
             searched_choice=np.load(open(searched_choice_file_path, "rb"), allow_pickle = True)
             self.model = modeler.func_model(nas_choice = searched_choice, feature_vec_len = self.feature_vec_len, \
                 nbhd_size = self.nbhd_size, nbhd_type = self.nbhd_type, flow_type = self.flow_type, \
-                weather_type = self.weather_type, optimizer = self.optimizer, loss = self.loss, metrics = [])
+                optimizer = self.optimizer, loss = self.loss, metrics = [])
             
             retrained_model_weight_file_path = self.test_dir + self.config["file"]["model_path"] + "retrained_final_model_weight"
             self.model.load_weights(retrained_model_weight_file_path)

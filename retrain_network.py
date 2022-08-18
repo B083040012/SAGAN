@@ -46,7 +46,7 @@ class Station_Functional_Model:
         elif choice == 2:
             return Activation("tanh", name = layer_name+"_tanh")
 
-    def func_model(self, nas_choice, feature_vec_len, nbhd_size, poi_size, nbhd_type, flow_type, weather_type, poi_type, \
+    def func_model(self, nas_choice, feature_vec_len, nbhd_size, nbhd_type, flow_type, \
         optimizer = 'adagrad', loss = 'mse', metrics=[]):
 
         """
@@ -55,14 +55,10 @@ class Station_Functional_Model:
             1. nbhd: short_term_lstm_seq_len, (nbhd_size, nbhd_size, nbhd_type,)
             2. flow: short_term_lstm_seq_len, (nbhd_size, nbhd_size, flow_type,)
             3. lstm: (short_term_lstm_seq_len, feature_vec_len,)
-            4. weather: (short_term_lstm_seq_len, weather_type,)
-            5. poi: (poi_size, poi_size, poi_type,)
         """
         nbhd_inputs = [Input(shape = (nbhd_size, nbhd_size, nbhd_type,), name = "nbhd_volume_input_time_{0}".format(ts+1)) for ts in range(self.short_term_lstm_seq_len)]
         flow_inputs = [Input(shape = (nbhd_size, nbhd_size, flow_type,), name = "flow_volume_input_time_{0}".format(ts+1)) for ts in range(self.short_term_lstm_seq_len)]
         lstm_inputs = Input(shape = (self.short_term_lstm_seq_len, feature_vec_len,), name = "lstm_input")
-        weather_inputs = Input(shape = (self.short_term_lstm_seq_len, weather_type,), name = "weather_input")
-        poi_inputs = Input(shape = (poi_size, poi_size, poi_type,), name = "poi_input")
 
         """
         long-term input
@@ -70,8 +66,6 @@ class Station_Functional_Model:
             1. nbhd: att_lstm_num, long_term_lstm_seq_len, (nbhd_size, nbhd_size, nbhd_type,)
             2. flow: att_lstm_num, long_term_lstm_seq_len, (nbhd_size, nbhd_size, flow_type,)
             3. lstm: att_lstm_num, (long_term_lstm_seq_len, feature_vec_len,)
-            4. weather: att_lstm_num, (long_term_lstm_seq_len, feature_vec_len,)
-            5. poi: take the same short-term poi data
         """
         flatten_att_nbhd_inputs = [Input(shape = (nbhd_size, nbhd_size, nbhd_type,), name = "att_nbhd_volume_input_time_{0}_{1}".format(att+1, ts+1)) \
             for ts in range(self.long_term_lstm_seq_len) for att in range(self.att_lstm_num)]
@@ -84,7 +78,6 @@ class Station_Functional_Model:
             att_nbhd_inputs.append(flatten_att_nbhd_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
             att_flow_inputs.append(flatten_att_flow_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
         att_lstm_inputs = [Input(shape = (self.long_term_lstm_seq_len, feature_vec_len,), name = "att_lstm_input_{0}".format(att+1)) for att in range(self.att_lstm_num)]
-        att_weather_inputs = [Input(shape = (self.long_term_lstm_seq_len, weather_type,), name = "att_weather_input_{0}".format(att+1)) for att in range(self.att_lstm_num)]
 
         #1st level gate
         level = 0
@@ -132,19 +125,10 @@ class Station_Functional_Model:
         nbhd_vecs = [Dense(units = self.cnn_flat_size, name = "nbhd_dense_time_{0}".format(ts+1))(nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
         nbhd_vecs = [Activation("relu", name = "nbhd_dense_activation_time_{0}".format(ts+1))(nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
 
-        # poi part
-        poi_convs = [Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same', name = 'poi_conv_time{0}'.format(ts+1))(poi_inputs) for ts in range(self.short_term_lstm_seq_len)]
-        poi_convs = [Activation("relu", name = "poi_conv_activation_time{0}".format(ts+1))(poi_convs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [Flatten(name = "poi_flatten_time{0}".format(ts+1))(poi_convs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [Dense(units = self.cnn_flat_size, name = "poi_dense_time{0}".format(ts+1))(poi_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [Activation("relu", name = "poi_dense_activation_{0}".format(ts+1))(poi_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vec = Concatenate(axis = -1)(poi_vecs)
-        poi_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(poi_vec)
-
         #feature concatenate
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
-        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather_inputs, poi_vec])
+        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec])
 
         #lstm
         lstm = LSTM(units=self.lstm_out_size, return_sequences=False, dropout=0.1, recurrent_dropout=0.1)(lstm_input)
@@ -190,16 +174,9 @@ class Station_Functional_Model:
         att_nbhd_vecs = [[Dense(units = self.cnn_flat_size, name = "att_nbhd_dense_time_{0}_{1}".format(att+1,ts+1))(att_nbhd_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
         att_nbhd_vecs = [[Activation("relu", name = "att_nbhd_dense_activation_time_{0}_{1}".format(att+1,ts+1))(att_nbhd_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
 
-        att_poi_convs = [[Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same', name = "att_poi_conv_time{0}_{1}".format(att+1, ts+1))(poi_inputs) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[Flatten(name = "att_poi_flatten_{0}_{1}".format(att+1, ts+1))(att_poi_convs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[Dense(units = self.cnn_flat_size, name = "att_poi_dense_time{0}_{1}".format(att+1, ts+1))(att_poi_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[Activation("relu", name = "att_poi_dense_activation_time_{0}_{1}".format(att+1, ts+1))(att_poi_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vec = [Concatenate(axis = -1)(att_poi_vecs[att]) for att in range(self.att_lstm_num)]
-        att_poi_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_poi_vec[att]) for att in range(self.att_lstm_num)]
-
         att_nbhd_vec = [Concatenate(axis=-1)(att_nbhd_vecs[att]) for att in range(self.att_lstm_num)]
         att_nbhd_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_nbhd_vec[att]) for att in range(self.att_lstm_num)]
-        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather_inputs[att], att_poi_vec[att]]) for att in range(self.att_lstm_num)]
+        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att]]) for att in range(self.att_lstm_num)]
 
         att_lstms = [LSTM(units=self.lstm_out_size, return_sequences=True, dropout=0.1, recurrent_dropout=0.1, name="att_lstm_{0}".format(att + 1))(att_lstm_input[att]) for att in range(self.att_lstm_num)]
 
@@ -217,11 +194,11 @@ class Station_Functional_Model:
         pred_volume = Activation('tanh')(lstm_all)
 
         # input variable comparison
-        # att_nbhd, att_flow, att_lstm, att_weather, short_nbhd, short_flow, short_lstm, short_weather, short_poi
-        # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,] + [weather_inputs,] + [poi_inputs,]
+        # att_nbhd, att_flow, att_lstm, short_nbhd, short_flow, short_lstm
+        # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,]
 
-        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + \
-            nbhd_inputs + flow_inputs + [lstm_inputs, ] + [weather_inputs, ] + [poi_inputs, ], outputs = pred_volume)
+        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + \
+            nbhd_inputs + flow_inputs + [lstm_inputs, ], outputs = pred_volume)
         model.compile(optimizer = optimizer, loss = loss, metrics=metrics)
         return model
 
@@ -260,7 +237,7 @@ class Region_Functional_Model:
         elif choice == 2:
             return Activation("tanh", name = layer_name+"_tanh")
 
-    def func_model(self, nas_choice, feature_vec_len, nbhd_size, nbhd_type, flow_type, weather_type, \
+    def func_model(self, nas_choice, feature_vec_len, nbhd_size, nbhd_type, flow_type, \
         optimizer = 'adagrad', loss = 'mse', metrics=[]):
 
         """
@@ -269,12 +246,10 @@ class Region_Functional_Model:
             1. nbhd: short_term_lstm_seq_len, (nbhd_size, nbhd_size, nbhd_type,)
             2. flow: short_term_lstm_seq_len, (nbhd_size, nbhd_size, flow_type,)
             3. lstm: (short_term_lstm_seq_len, feature_vec_len,)
-            4. weather: (short_term_lstm_seq_len, weather_type,)
         """
         nbhd_inputs = [Input(shape = (nbhd_size, nbhd_size, nbhd_type,), name = "nbhd_volume_input_time_{0}".format(ts+1)) for ts in range(self.short_term_lstm_seq_len)]
         flow_inputs = [Input(shape = (nbhd_size, nbhd_size, flow_type,), name = "flow_volume_input_time_{0}".format(ts+1)) for ts in range(self.short_term_lstm_seq_len)]
         lstm_inputs = Input(shape = (self.short_term_lstm_seq_len, feature_vec_len,), name = "lstm_input")
-        weather_inputs = Input(shape = (self.short_term_lstm_seq_len, weather_type,), name = "weather_input")
 
         """
         long-term input
@@ -282,7 +257,6 @@ class Region_Functional_Model:
             1. nbhd: att_lstm_num, long_term_lstm_seq_len, (nbhd_size, nbhd_size, nbhd_type,)
             2. flow: att_lstm_num, long_term_lstm_seq_len, (nbhd_size, nbhd_size, flow_type,)
             3. lstm: att_lstm_num, (long_term_lstm_seq_len, feature_vec_len,)
-            4. weather: att_lstm_num, (long_term_lstm_seq_len, feature_vec_len,)
         """
         flatten_att_nbhd_inputs = [Input(shape = (nbhd_size, nbhd_size, nbhd_type,), name = "att_nbhd_volume_input_time_{0}_{1}".format(att+1, ts+1)) \
             for ts in range(self.long_term_lstm_seq_len) for att in range(self.att_lstm_num)]
@@ -295,7 +269,6 @@ class Region_Functional_Model:
             att_nbhd_inputs.append(flatten_att_nbhd_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
             att_flow_inputs.append(flatten_att_flow_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
         att_lstm_inputs = [Input(shape = (self.long_term_lstm_seq_len, feature_vec_len,), name = "att_lstm_input_{0}".format(att+1)) for att in range(self.att_lstm_num)]
-        att_weather_inputs = [Input(shape = (self.long_term_lstm_seq_len, weather_type,), name = "att_weather_input_{0}".format(att+1)) for att in range(self.att_lstm_num)]
 
         #1st level gate
         level = 0
@@ -346,7 +319,7 @@ class Region_Functional_Model:
         #feature concatenate
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
-        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather_inputs])
+        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec])
 
         #lstm
         lstm = LSTM(units=self.lstm_out_size, return_sequences=False, dropout=0.1, recurrent_dropout=0.1)(lstm_input)
@@ -394,7 +367,7 @@ class Region_Functional_Model:
 
         att_nbhd_vec = [Concatenate(axis=-1)(att_nbhd_vecs[att]) for att in range(self.att_lstm_num)]
         att_nbhd_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_nbhd_vec[att]) for att in range(self.att_lstm_num)]
-        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather_inputs[att]]) for att in range(self.att_lstm_num)]
+        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att]]) for att in range(self.att_lstm_num)]
 
         att_lstms = [LSTM(units=self.lstm_out_size, return_sequences=True, dropout=0.1, recurrent_dropout=0.1, name="att_lstm_{0}".format(att + 1))(att_lstm_input[att]) for att in range(self.att_lstm_num)]
 
@@ -411,10 +384,10 @@ class Region_Functional_Model:
         pred_volume = Activation('tanh')(lstm_all)
 
         # input variable comparison
-        # att_nbhd, att_flow, att_lstm, att_weather, short_nbhd, short_flow, short_lstm, short_weather
-        # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,] + [weather_inputs,]
+        # att_nbhd, att_flow, att_lstm, short_nbhd, short_flow, short_lstm
+        # flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + nbhd_inputs + flow_inputs + [lstm_inputs,]
 
-        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + att_weather_inputs + \
-            nbhd_inputs + flow_inputs + [lstm_inputs, ] + [weather_inputs,], outputs = pred_volume)
+        model = Model(inputs = flatten_att_nbhd_inputs + flatten_att_flow_inputs + att_lstm_inputs + \
+            nbhd_inputs + flow_inputs + [lstm_inputs, ], outputs = pred_volume)
         model.compile(optimizer = optimizer, loss = loss, metrics=metrics)
         return model

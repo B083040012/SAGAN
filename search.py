@@ -35,36 +35,31 @@ class Search():
         """
         my_data_loader = File_Loader(self.dataset_type, self.config, limit_dataset = True)
         if self.dataset_type == "station":
-            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "validation")
-            self.val_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]
+            att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm, y = my_data_loader.sample(datatype = "validation")
+            self.val_data = [att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm]
             self.val_label = y
 
             logger.info("[Agent] shapes of each station-level inputs for operation Search")
             logger.info("att_cnn: {0}, {1}".format(len(att_cnn), att_cnn[0].shape))
             logger.info("att_flow: {0}, {1}".format(len(att_flow), att_flow[0].shape))
             logger.info("att_lstm: {0}, {1}".format(len(att_lstm), att_lstm[0].shape))
-            logger.info("att_weather: {0}, {1}".format(len(att_weather), att_weather[0].shape))
             logger.info("short_cnn: {0}, {1}".format(len(short_cnn), short_cnn[0].shape))
             logger.info("short_flow: {0}, {1}".format(len(short_flow), short_flow[0].shape))
             logger.info("short_lstm: {0}".format(short_lstm.shape))
-            logger.info("short_weather: {0}".format(short_weather.shape))
-            logger.info("short poi: {0}".format(short_poi.shape))
             logger.info("y: {0}".format(y.shape))
 
         elif self.dataset_type == "region":
-            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, y = my_data_loader.sample(datatype = "validation")
-            self.val_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather]
+            att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm, y = my_data_loader.sample(datatype = "validation")
+            self.val_data = [att_cnn, att_flow, att_lstm, short_cnn, short_flow, short_lstm]
             self.val_label = y
 
             logger.info("[Agent] shapes of each region-level inputs for operation Search")
             logger.info("att_cnn: {0}, {1}".format(len(att_cnn), att_cnn[0].shape))
             logger.info("att_flow: {0}, {1}".format(len(att_flow), att_flow[0].shape))
             logger.info("att_lstm: {0}, {1}".format(len(att_lstm), att_lstm[0].shape))
-            logger.info("att_weather: {0}, {1}".format(len(att_weather), att_weather[0].shape))
             logger.info("short_cnn: {0}, {1}".format(len(short_cnn), short_cnn[0].shape))
             logger.info("short_flow: {0}, {1}".format(len(short_flow), short_flow[0].shape))
             logger.info("short_lstm: {0}".format(short_lstm.shape))
-            logger.info("short_weather: {0}".format(short_weather.shape))
             logger.info("y: {0}".format(y.shape))
 
     def load_model(self):

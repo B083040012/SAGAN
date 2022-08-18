@@ -33,16 +33,12 @@ class File_Loader():
                 4. single flow (flow for single station): timeslot * station * type (start / end)
                 * single flow will be loaded only if it's pred_target
                 * datasets above will be normalized when loading
-                4. weather: timeslot * type
-                5. poi: station * type * grid_x * grid_y
         """
         self.volume_train = np.load(self.config["file"]["station"]["volume_train"]) / self.config["dataset"]["station"]["volume_train_max"]
         self.flow_train = np.load(self.config["file"]["station"]["flow_train"]) / self.config["dataset"]["station"]["flow_train_max"]
         self.single_volume_train = np.load(self.config["file"]["station"]["single_volume_train"]) / self.config["dataset"]["station"]["single_volume_train_max"]
         if self.pred_target == "flow":
             self.single_flow_train = np.load(self.config["file"]["station"]["single_flow_train"]) / self.config["dataset"]["station"]["single_flow_train_max"]
-        self.weather_train = np.load(self.config["file"]["station"]["weather_train"])
-        self.poi_data = np.load(self.config["file"]["station"]["poi_data"])
         if self.limit_dataset == False:
             self.start_date = self.config["dataset"]["station"]["start_date_train"]
             self.end_date = self.config["dataset"]["station"]["end_date_train"]
@@ -64,8 +60,6 @@ class File_Loader():
         self.single_volume_test = np.load(self.config["file"]["station"]["single_volume_test"]) / self.config["dataset"]["station"]["single_volume_test_max"]
         if self.pred_target == "flow":
             self.single_flow_test = np.load(self.config["file"]["station"]["single_flow_test"]) / self.config["dataset"]["station"]["single_flow_test_max"]
-        self.weather_test = np.load(self.config["file"]["station"]["weather_test"])
-        self.poi_data = np.load(self.config["file"]["station"]["poi_data"])
         if self.limit_dataset == False:
             self.start_date = self.config["dataset"]["station"]["start_date_test"]
             self.end_date = self.config["dataset"]["station"]["end_date_test"]
@@ -85,14 +79,12 @@ class File_Loader():
                 1. volume: timeslot * station * grid_x * grid_y * type (start / end from region)
                 2. flow: timeslot * station * type (in / outflow) * grid_x * grid_y (start region) * grid_x * grid_y (end region)
                 * datasets above will be normalized when loading
-                3. weather: timeslot * type
         """
         self.volume_train = np.load(self.config["file"]["region"]["volume_train"]) / self.config["dataset"]["region"]["volume_train_max"]
         self.flow_train = np.load(self.config["file"]["region"]["flow_train"]) / self.config["dataset"]["region"]["flow_train_max"]
         if self.pred_target == "flow":
             print("invalid target for region-level dataset !!")
             raise Exception
-        self.weather_train = np.load(self.config["file"]["region"]["weather_train"])
         if self.limit_dataset == False:
             self.start_date = self.config["dataset"]["region"]["start_date_train"]
             self.end_date = self.config["dataset"]["region"]["end_date_train"]
@@ -114,7 +106,6 @@ class File_Loader():
         if self.pred_target == "flow":
             print("invalid target for region-level dataset !!")
             raise Exception
-        self.weather_test = np.load(self.config["file"]["region"]["weather_test"])
         if self.limit_dataset == False:
             self.start_date = self.config["dataset"]["region"]["start_date_test"]
             self.end_date = self.config["dataset"]["region"]["end_date_test"]
@@ -147,8 +138,6 @@ class File_Loader():
             self.load_train_station()
             volume_data = self.volume_train
             flow_data = self.flow_train
-            weather_data = self.weather_train
-            poi_data = self.poi_data
             single_volume_data = self.single_volume_train
             if self.pred_target == "flow":
                 single_flow_data = self.single_flow_train
@@ -157,8 +146,6 @@ class File_Loader():
             self.load_test_station()
             volume_data = self.volume_test
             flow_data = self.flow_test
-            weather_data = self.weather_test
-            poi_data = self.poi_data
             single_volume_data = self.single_volume_test
             if self.pred_target == "flow":
                 single_flow_data = self.single_flow_test
@@ -170,9 +157,7 @@ class File_Loader():
         # initialize short term features & label
         short_nbhd_features = []
         short_flow_features = []
-        short_weather_features = []
         short_lstm_features = []
-        poi_features = []
         labels = []
         for ts in range(self.short_term_lstm_seq_len):
             short_nbhd_features.append([])
@@ -181,12 +166,10 @@ class File_Loader():
         # initialize long term features
         att_nbhd_features = []
         att_flow_features = []
-        att_weather_features = []
         att_lstm_features = []
         for att in range(self.att_lstm_num):
             att_nbhd_features.append([])
             att_flow_features.append([])
-            att_weather_features.append([])
             att_lstm_features.append([])
             for ts in range(self.long_term_lstm_seq_len):
                 att_nbhd_features[att].append([])
@@ -212,25 +195,13 @@ class File_Loader():
                 print("Now sampling at {0}th timeslots.".format(index))
             for station_idx in range(0, volume_data.shape[1]):
                 """
-                poi features
-                    size: 5 (grid_x) * 5 (gird_y) * 10 (poi_type) 
-                    # since the poi features have identical timeslot for each station, 
-                      short and long term all have same poi_features
-                """
-                poi_features.append(poi_data[station_idx, :, :, 0:6])
-
-                """
                 short-term features
                 including:
                     1. nbhd_features
                     2. flow_features
                     3. lstm_features
-                    4. weather_features
-                    5. poi_features
-                        # notice that poi features has no time interval yet (same time for each station)
                 """
                 short_term_lstm_samples = []
-                short_term_weather_samples = []
                 for seqn in range(self.short_term_lstm_seq_len):
                     # real_t from (t - short_term_lstm_seq_len) to (t-1)
                     real_t = t - (self.short_term_lstm_seq_len - seqn)
@@ -269,14 +240,6 @@ class File_Loader():
 
                     short_flow_features[seqn].append(flow_feature)
 
-                    # """
-                    # short-term poi features
-                    #     size: 10*10*10
-                    #     including:
-                    #         10 types of poi
-                    # """
-                    # poi_features.append(poi_data[station_idx])
-
                     """
                     short-term lstm features
                         size: sum of the size below (after flatten)
@@ -284,18 +247,6 @@ class File_Loader():
                             1. volume feature: lstm_nbhd_size * lstm_nbhd_size * volume_type (start / end)
                             2. last feature: last_feature_num * volume_type (start / end)
                             3. hist feature: hist_feature_num * volume_type (start / end)
-                    
-                    short-term weather features
-                        size: do not have fixed size (depends on the time of dataset)
-                        including:
-                            1. temparature
-                            2. dew point
-                            3. humidity
-                            4. wind speed
-                            5. wind gust
-                            6. pressure
-                            7. precip
-                            8 ~ shape[-1]. one hot encoding for weather type
                     """
                     # volume feature
                     # nbhd_feature = np.zeros((volume_data.shape[3], volume_data.shape[4], volume_data.shape[2]))
@@ -330,10 +281,8 @@ class File_Loader():
                     feature_vec = np.concatenate((feature_vec, nbhd_feature))
 
                     short_term_lstm_samples.append(feature_vec)
-                    short_term_weather_samples.append(weather_data[real_t])
 
                 short_lstm_features.append(np.array(short_term_lstm_samples))
-                short_weather_features.append(np.array(short_term_weather_samples))
 
                 """
                 long-term features
@@ -341,13 +290,10 @@ class File_Loader():
                     1. att_nbhd_features
                     2. att_flow_features
                     3. att_lstm_features
-                    4. att_weather_features
-                    5. poi_features (same as short term poi features)
                 """
                 for att_lstm_cnt in range(self.att_lstm_num):
 
                     long_term_lstm_samples = []
-                    long_term_weather_samples = []
 
                     """
                     range of att_t:
@@ -400,14 +346,6 @@ class File_Loader():
 
                         att_flow_features[att_lstm_cnt][seqn].append(flow_feature)
 
-                        # """
-                        # long-term poi features
-                        #     size: 10*10*10
-                        #     including:
-                        #         10 types of poi
-                        # """
-                        # poi_att_features[att_lstm_cnt].append(poi_data[station_idx])
-
                         """
                         long-term lstm features
                             size: sum of the size below (after flatten)
@@ -415,18 +353,6 @@ class File_Loader():
                                 1. volume feature: lstm_nbhd_size * lstm_nbhd_size * volume_type (start / end)
                                 2. last feature: last_feature_num * volume_type (start / end)
                                 3. hist feature: hist_feature_num * volume_type (start / end)
-                        
-                        long-term weather features
-                            size: do not have fixed size (depends on the time of dataset)
-                            including:
-                                1. temparature
-                                2. dew point
-                                3. humidity
-                                4. wind speed
-                                5. wind gust
-                                6. pressure
-                                7. precip
-                                8 ~ shape[-1]. one hot encoding for weather type
                         """
                         # volume feature
                         # nbhd_feature = np.zeros((volume_data.shape[3], volume_data.shape[4], volume_data.shape[2]))
@@ -463,9 +389,7 @@ class File_Loader():
                         feature_vec = np.concatenate((feature_vec, nbhd_feature))
 
                         long_term_lstm_samples.append(feature_vec)
-                        long_term_weather_samples.append(weather_data[real_t])
                     att_lstm_features[att_lstm_cnt].append(np.array(long_term_lstm_samples))
-                    att_weather_features[att_lstm_cnt].append(np.array(long_term_weather_samples))
                 
                 """
                 label
@@ -486,26 +410,20 @@ class File_Loader():
             short_nbhd_features[i] = np.array(short_nbhd_features[i])
             short_flow_features[i] = np.array(short_flow_features[i])
         short_lstm_features = np.array(short_lstm_features)
-        weather_features = np.array(short_weather_features)
-        poi_features = np.array(poi_features)
         
         output_nbhd_att_features = []
         output_flow_att_features = []
-        # output_poi_att_features = []
         for i in range(self.att_lstm_num):
             att_lstm_features[i] = np.array(att_lstm_features[i])
-            att_weather_features[i] = np.array(att_weather_features[i])
             for j in range(self.long_term_lstm_seq_len):
                 att_nbhd_features[i][j] = np.array(att_nbhd_features[i][j])
                 att_flow_features[i][j] = np.array(att_flow_features[i][j])
-                # poi_att_features[i][j] = np.array(poi_att_features[i][j])
                 output_nbhd_att_features.append(att_nbhd_features[i][j])
                 output_flow_att_features.append(att_flow_features[i][j])
-                # output_poi_att_features.append(poi_att_features[i][j])
         labels = np.array(labels)
 
-        return output_nbhd_att_features, output_flow_att_features, att_lstm_features, att_weather_features,\
-            short_nbhd_features, short_flow_features, short_lstm_features, weather_features, poi_features,\
+        return output_nbhd_att_features, output_flow_att_features, att_lstm_features,\
+            short_nbhd_features, short_flow_features, short_lstm_features,\
             labels
 
     def sample_region(self, datatype):
@@ -517,12 +435,10 @@ class File_Loader():
             self.load_train_region()
             data = self.volume_train
             flow_data = self.flow_train
-            weather_data = self.weather_train
         elif datatype == "test":
             self.load_test_region()
             data = self.volume_test
             flow_data = self.flow_test
-            weather_data = self.weather_test
         else:
             print("Please select 'train', 'validation', or 'test'")
             raise Exception
@@ -531,10 +447,8 @@ class File_Loader():
         cnn_att_features = []
         lstm_att_features = []
         flow_att_features = []
-        weather_att_features = []
         for i in range(self.att_lstm_num):
             lstm_att_features.append([])
-            weather_att_features.append([])
             cnn_att_features.append([])
             flow_att_features.append([])
             for j in range(self.long_term_lstm_seq_len):
@@ -543,7 +457,6 @@ class File_Loader():
 
         cnn_features = []
         flow_features = []
-        weather_features = []
         for i in range(self.short_term_lstm_seq_len):
             cnn_features.append([])
             flow_features.append([])
@@ -569,7 +482,6 @@ class File_Loader():
                     
                     #sample common (short-term) lstm
                     short_term_lstm_samples = []
-                    short_term_weather_samples = []
                     for seqn in range(self.short_term_lstm_seq_len):
                         # real_t from (t - short_term_lstm_seq_len) to (t-1)
                         real_t = t - (self.short_term_lstm_seq_len - seqn)
@@ -634,16 +546,13 @@ class File_Loader():
                         feature_vec = np.concatenate((feature_vec, nbhd_feature))
 
                         short_term_lstm_samples.append(feature_vec)
-                        short_term_weather_samples.append(weather_data[real_t])
                     short_term_lstm_features.append(np.array(short_term_lstm_samples))
-                    weather_features.append(np.array(short_term_weather_samples))
 
                     #sample att-lstms
                     for att_lstm_cnt in range(self.att_lstm_num):
                         
                         #sample lstm at att loc att_lstm_cnt
                         long_term_lstm_samples = []
-                        long_term_weather_samples = []
                         # get time att_t, move forward for (att_lstm_num - att_lstm_cnt) day, then move back for ([long_term_lstm_seq_len / 2] + 1)
                         # notice that att_t-th timeslot will not be sampled in lstm
                         # e.g., **** (att_t - 3) **** (att_t - 2) (yesterday's t) **** (att_t - 1) **** (att_t) (this one will not be sampled)
@@ -716,9 +625,7 @@ class File_Loader():
                             feature_vec = np.concatenate((feature_vec, nbhd_feature))
 
                             long_term_lstm_samples.append(feature_vec)
-                            long_term_weather_samples.append(weather_data[real_t])
                         lstm_att_features[att_lstm_cnt].append(np.array(long_term_lstm_samples))
-                        weather_att_features[att_lstm_cnt].append(np.array(long_term_weather_samples))
 
                     #label
                     labels.append(data[t, x , y, :].flatten())          
@@ -727,7 +634,6 @@ class File_Loader():
         output_flow_att_features = []
         for i in range(self.att_lstm_num):
             lstm_att_features[i] = np.array(lstm_att_features[i])
-            weather_att_features[i] = np.array(weather_att_features[i])
             for j in range(self.long_term_lstm_seq_len):
                 cnn_att_features[i][j] = np.array(cnn_att_features[i][j])
                 flow_att_features[i][j] = np.array(flow_att_features[i][j])
@@ -738,11 +644,10 @@ class File_Loader():
             cnn_features[i] = np.array(cnn_features[i])
             flow_features[i] = np.array(flow_features[i])
         short_term_lstm_features = np.array(short_term_lstm_features)
-        weather_features = np.array(weather_features)
         labels = np.array(labels)
 
-        return output_nbhd_att_features, output_flow_att_features, lstm_att_features, weather_att_features, \
-            cnn_features, flow_features, short_term_lstm_features, weather_features, labels
+        return output_nbhd_att_features, output_flow_att_features, lstm_att_features, \
+            cnn_features, flow_features, short_term_lstm_features, labels
 
     def sample(self, datatype):
         if self.dataset_type == "station":
