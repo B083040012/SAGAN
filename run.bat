@@ -11,6 +11,7 @@ cls
 
 echo *********************************************
 echo ************SAGAN Running Script*************
+echo ************weather_only dataset*************
 
 CHOICE /C:12 /M "Select Dataset (1: region, 2: station)"
 IF %ERRORLEVEL% == 1 SET dataset=region

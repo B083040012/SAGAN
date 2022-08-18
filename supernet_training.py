@@ -100,8 +100,8 @@ class Supernet_Training():
         """
         my_data_loader = File_Loader(self.dataset_type, self.config, limit_dataset = True)
         if self.dataset_type == "station":
-            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi, y = my_data_loader.sample(datatype = "train")
-            self.train_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, short_poi]
+            att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather, y = my_data_loader.sample(datatype = "train")
+            self.train_data = [att_cnn, att_flow, att_lstm, att_weather, short_cnn, short_flow, short_lstm, short_weather]
             self.train_label = y
 
             logger.info("[Agent] shapes of each station-level inputs for operation Supernet_Training")
@@ -113,7 +113,6 @@ class Supernet_Training():
             logger.info("short_flow: {0}, {1}".format(len(short_flow), short_flow[0].shape))
             logger.info("short_lstm: {0}".format(short_lstm.shape))
             logger.info("short_weather: {0}".format(short_weather.shape))
-            logger.info("short poi: {0}".format(short_poi.shape))
             logger.info("y: {0}".format(y.shape))
 
         elif self.dataset_type == "region":

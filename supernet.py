@@ -210,19 +210,13 @@ class Station_Supernet_Subclass_Model(keras.Model):
         """
         Initialize other layers in short-term
         including:
-            1. short-term poi conv
-            2. short-term poi dense
-            3. short-term nbhd dense
-            4. short-term lstm
+            1. short-term nbhd dense
+            2. short-term lstm
         """
-        # short_poi_conv: short_term_lstm_seq_len * 1
-        # short_poi_dense: short_term_lstm_seq_len * 1
         # short_nbhd_dense: short_term_lstm_seq_len * 1
         # short_lstm: 1
-        self.short_poi_conv, self.short_poi_dense, self.short_nbhd_dense, = ([] for cnt in range(3))
+        self.short_nbhd_dense = []
         for ts in range(self.short_term_lstm_seq_len):
-            self.short_poi_conv.append(Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same', name = 'poi_conv_time{0}'.format(ts+1)))
-            self.short_poi_dense.append(Dense(units = self.cnn_flat_size, name = "poi_dense_time{0}".format(ts+1)))
             self.short_nbhd_dense.append(Dense(units = self.cnn_flat_size, name = "nbhd_dense_time{0}".format(ts+1)))
         self.short_lstm = LSTM(units = self.lstm_out_size, return_sequences = False, dropout = 0.1, recurrent_dropout = 0.1)
 
@@ -258,23 +252,16 @@ class Station_Supernet_Subclass_Model(keras.Model):
         """
         Initialize other layers in long-term
         including:
-            1. long-term poi conv
-            2. long-term poi dense
-            3. long-term nbhd dense
-            4. long-term lstm
-            5. long-term attention
+            1. long-term nbhd dense
+            2. long-term lstm
+            3. long-term attention
         """
-        # long_poi_conv: att_lstm_num * long_term_lstm_seq_len * 1
-        # long_poi_dense: att_lstm_num * long_term_lstm_seq_len * 1
         # long_nbhd_dense: att_lstm_num * long_term_lstm_seq_len * 1
         # long_lstm: att_lstm_num * 1
         # long_attention: att_lstm_num * 1
-        self.long_poi_conv, self.long_poi_dense, self.long_nbhd_dense = \
-            ([[] for att in range(self.att_lstm_num)] for cnt in range(3))
+        self.long_nbhd_dense = [[] for att in range(self.att_lstm_num)]
         for args in itertools.product(range(self.att_lstm_num), range(self.long_term_lstm_seq_len)):
             att, ts= args[0], args[1]
-            self.long_poi_conv[att].append(Conv2D(filters = 64, kernel_size = (3, 3), padding = 'same', name = "att_poi_conv_time{0}_{1}".format(att+1, ts+1)))
-            self.long_poi_dense[att].append(Dense(units = self.cnn_flat_size, name = "att_poi_dense_time{0}_{1}".format(att+1, ts+1)))
             self.long_nbhd_dense[att].append(Dense(units = self.cnn_flat_size, name = "att_nbhd_dense_time{0}_{1}".format(att+1, ts+1)))
         self.long_lstm, self.long_attention = ([] for cnt in range(2))
         for att in range(self.att_lstm_num):
@@ -320,14 +307,13 @@ class Station_Supernet_Subclass_Model(keras.Model):
 
     # @tf.function
     def call(self, inputs):
-        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather, nbhd_inputs, flow_inputs, lstm_inputs, weather, poi_data = inputs
+        flatten_att_nbhd_inputs, flatten_att_flow_inputs, att_lstm_inputs, att_weather, nbhd_inputs, flow_inputs, lstm_inputs, weather = inputs
 
         att_nbhd_inputs = []
         att_flow_inputs = []
         for att in range(self.att_lstm_num):
             att_nbhd_inputs.append(flatten_att_nbhd_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
             att_flow_inputs.append(flatten_att_flow_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
-            # att_poi_inputs.append(att_poi_data[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
 
         # print("choice:", self.choice)
         # 1st level gate
@@ -368,20 +354,11 @@ class Station_Supernet_Subclass_Model(keras.Model):
         nbhd_vecs = [self.short_nbhd_dense[ts](nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
         nbhd_vecs = [Activation("relu", name = "nbhd_dense_activation_time{0}".format(ts+1))(nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
 
-        # poi part
-        poi_convs = [self.short_poi_conv[ts](poi_data) for ts in range(self.short_term_lstm_seq_len)]
-        poi_convs = [Activation("relu", name = "poi_conv_activation_time{0}".format(ts+1))(poi_convs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [Flatten(name = "poi_flatten_time{0}".format(ts+1))(poi_convs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [self.short_poi_dense[ts](poi_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vecs = [Activation("relu", name = "poi_dense_activation_{0}".format(ts+1))(poi_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
-        poi_vec = Concatenate(axis = -1)(poi_vecs)
-        poi_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(poi_vec)
-
         # feature concatenate
-        # lstm_feature, nbhd_convs, weather, poi
+        # lstm_feature, nbhd_convs, weather
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
-        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather, poi_vec])
+        lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather])
 
         #lstm
         lstm = self.short_lstm(lstm_input)
@@ -421,16 +398,9 @@ class Station_Supernet_Subclass_Model(keras.Model):
         att_nbhd_vecs = [[self.long_nbhd_dense[att][ts](att_nbhd_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
         att_nbhd_vecs = [[Activation("relu", name = "att_nbhd_dense_activation_time_{0}_{1}".format(att+1,ts+1))(att_nbhd_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
 
-        att_poi_convs = [[self.long_poi_conv[att][ts](poi_data) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[Flatten(name = "att_poi_flatten_{0}_{1}".format(att+1, ts+1))(att_poi_convs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[self.long_poi_dense[att][ts](att_poi_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vecs = [[Activation("relu", name = "att_poi_dense_activation_time_{0}_{1}".format(att+1, ts+1))(att_poi_vecs[att][ts]) for ts in range(self.long_term_lstm_seq_len)] for att in range(self.att_lstm_num)]
-        att_poi_vec = [Concatenate(axis = -1)(att_poi_vecs[att]) for att in range(self.att_lstm_num)]
-        att_poi_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_poi_vec[att]) for att in range(self.att_lstm_num)]
-
         att_nbhd_vec = [Concatenate(axis=-1)(att_nbhd_vecs[att]) for att in range(self.att_lstm_num)]
         att_nbhd_vec = [Reshape(target_shape = (self.long_term_lstm_seq_len, self.cnn_flat_size))(att_nbhd_vec[att]) for att in range(self.att_lstm_num)]
-        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather[att], att_poi_vec[att]]) for att in range(self.att_lstm_num)]
+        att_lstm_input = [Concatenate(axis=-1)([att_lstm_inputs[att], att_nbhd_vec[att], att_weather[att]]) for att in range(self.att_lstm_num)]
 
         att_lstms = [self.long_lstm[att](att_lstm_input[att]) for att in range(self.att_lstm_num)]
 
@@ -572,8 +542,6 @@ class Region_Supernet_Subclass_Model(keras.Model):
             2. long-term lstm
             3. long-term attention
         """
-        # long_poi_conv: att_lstm_num * long_term_lstm_seq_len * 1
-        # long_poi_dense: att_lstm_num * long_term_lstm_seq_len * 1
         # long_nbhd_dense: att_lstm_num * long_term_lstm_seq_len * 1
         # long_lstm: att_lstm_num * 1
         # long_attention: att_lstm_num * 1
@@ -632,7 +600,6 @@ class Region_Supernet_Subclass_Model(keras.Model):
         for att in range(self.att_lstm_num):
             att_nbhd_inputs.append(flatten_att_nbhd_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
             att_flow_inputs.append(flatten_att_flow_inputs[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
-            # att_poi_inputs.append(att_poi_data[att*self.long_term_lstm_seq_len:(att+1)*self.long_term_lstm_seq_len])
 
         # print("choice:", self.choice)
         # 1st level gate
@@ -674,7 +641,7 @@ class Region_Supernet_Subclass_Model(keras.Model):
         nbhd_vecs = [Activation("relu", name = "nbhd_dense_activation_time{0}".format(ts+1))(nbhd_vecs[ts]) for ts in range(self.short_term_lstm_seq_len)]
 
         # feature concatenate
-        # lstm_feature, nbhd_convs, weather, poi
+        # lstm_feature, nbhd_convs, weather
         nbhd_vec = Concatenate(axis=-1)(nbhd_vecs)
         nbhd_vec = Reshape(target_shape = (self.short_term_lstm_seq_len, self.cnn_flat_size))(nbhd_vec)
         lstm_input = Concatenate(axis=-1)([lstm_inputs, nbhd_vec, weather])
