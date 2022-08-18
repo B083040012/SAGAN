@@ -3,6 +3,7 @@
 ## About This Repo
 
 * Single Path One-Shot NAS based on [STDN](https://github.com/tangxianfeng/STDN) neural network for predicting bike demand in Bike Sharing System
+    * the architecture of `supernet_training.py`, `retrain_network.py`, and `attention.py` is according to [STDN](https://github.com/tangxianfeng/STDN) neural network
 * references:
     * [Revisiting Spatial-Temporal Similarity: A Deep Learning Framework for Traffic Prediction](https://arxiv.org/abs/1803.01254)
     * [Single path one-shot neural architecture search with uniform sampling](https://link.springer.com/chapter/10.1007/978-3-030-58517-4_32)
