@@ -61,6 +61,7 @@ class Agent():
         
         self.logger = logging.getLogger('agent')
         self.logger.info("[Agent] Starting SAGAN procedure...")
+        self.logger.info("[Agent] Dataset type: {0}, all external feature (weather & poi)".format(self.args.dataset_type))
     
     def process(self):
 
