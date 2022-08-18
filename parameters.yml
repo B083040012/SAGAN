@@ -329,7 +329,7 @@ debug:
     # parameters for asaga
     asaga:
       generation_num: 2
-      population_num: 8
+      population_num: 2
       annealing_ratio: 0.9
       initial_tmp: 1
       final_tmp: 0
